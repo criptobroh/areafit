@@ -27,11 +27,11 @@ export default function ConversacionDetailPage({
       <div className="flex-1 overflow-auto p-4 md:p-6 space-y-4">
         {/* Back & Info */}
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon-sm" asChild>
-            <Link href="/conversaciones">
+          <Link href="/conversaciones">
+            <Button variant="ghost" size="icon-sm">
               <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
+            </Button>
+          </Link>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-heading font-semibold">
               {conversation.contactName}

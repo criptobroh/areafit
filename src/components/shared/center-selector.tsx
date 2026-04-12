@@ -17,7 +17,8 @@ export function CenterSelector() {
   const pathname = usePathname()
   const currentCenter = searchParams.get("center") || "all"
 
-  function handleChange(value: string) {
+  function handleChange(value: string | null) {
+    if (!value) return
     const params = new URLSearchParams(searchParams.toString())
     if (value === "all") {
       params.delete("center")
