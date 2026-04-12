@@ -78,7 +78,7 @@ export default function LogsPage() {
         {/* Filters */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Select value={levelFilter} onValueChange={setLevelFilter}>
+            <Select value={levelFilter} onValueChange={(v) => { if (v) setLevelFilter(v) }}>
               <SelectTrigger className="w-[140px] h-9 text-sm">
                 <SelectValue placeholder="Nivel" />
               </SelectTrigger>
