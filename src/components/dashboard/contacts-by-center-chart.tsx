@@ -1,6 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   BarChart,
   Bar,
@@ -10,7 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts"
-import { mockContactsByCenter } from "@/lib/mock-data"
+import { useContactsByCenter } from "@/hooks/queries/use-dashboard"
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
@@ -25,7 +26,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 }
 
 export function ContactsByCenterChart() {
-  const data = mockContactsByCenter.slice(0, 10)
+  const { data, isLoading } = useContactsByCenter()
 
   return (
     <Card className="border-0 shadow-sm">
@@ -36,41 +37,49 @@ export function ContactsByCenterChart() {
       </CardHeader>
       <CardContent>
         <div className="h-[320px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={data}
-              layout="vertical"
-              margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                horizontal={false}
-                stroke="var(--border)"
-              />
-              <XAxis
-                type="number"
-                tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-                tickFormatter={(v) => v.toLocaleString("es-ES")}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                dataKey="center"
-                type="category"
-                width={90}
-                tick={{ fontSize: 12, fill: "var(--foreground)" }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <Tooltip content={<CustomTooltip />} cursor={{ fill: "var(--accent)", opacity: 0.5 }} />
-              <Bar
-                dataKey="count"
-                fill="var(--areafit-teal)"
-                radius={[0, 4, 4, 0]}
-                maxBarSize={24}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+          {isLoading ? (
+            <div className="h-full flex flex-col gap-2 justify-center">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <Skeleton key={i} className="h-5 w-full" />
+              ))}
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={(data ?? []).slice(0, 10)}
+                layout="vertical"
+                margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  horizontal={false}
+                  stroke="var(--border)"
+                />
+                <XAxis
+                  type="number"
+                  tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                  tickFormatter={(v) => v.toLocaleString("es-ES")}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  dataKey="center"
+                  type="category"
+                  width={90}
+                  tick={{ fontSize: 12, fill: "var(--foreground)" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: "var(--accent)", opacity: 0.5 }} />
+                <Bar
+                  dataKey="count"
+                  fill="#00AEEF"
+                  radius={[0, 4, 4, 0]}
+                  maxBarSize={24}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -1,0 +1,180 @@
+// ============================================================
+// AreaFit Dashboard - Prisma Schema
+// Neon Postgres: auth + CSVs historicos importados
+// ============================================================
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+  output          = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── Auth & Users ──────────────────────────────────────────────
+
+model BackofficeUser {
+  id         String    @id @default(cuid())
+  email      String    @unique
+  firstName  String?   @map("first_name")
+  lastName   String?   @map("last_name")
+  nickname   String?
+  avatarUrl  String?   @map("avatar_url")
+  userId     String?   @unique @map("user_id")
+  roleId     String?   @map("role_id")
+  role       Role?     @relation(fields: [roleId], references: [id])
+  active     Boolean   @default(true)
+  lastSeenAt DateTime? @map("last_seen_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  @@map("backoffice_users")
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  slug        String           @unique
+  isSystem    Boolean          @default(false) @map("is_system")
+  homeScreen  String?          @map("home_screen")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  users       BackofficeUser[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  id        String  @id @default(cuid())
+  roleId    String  @map("role_id")
+  role      Role    @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  screen    String
+  canView   Boolean @default(false) @map("can_view")
+  canCreate Boolean @default(false) @map("can_create")
+  canEdit   Boolean @default(false) @map("can_edit")
+  canDelete Boolean @default(false) @map("can_delete")
+
+  @@unique([roleId, screen])
+  @@map("role_permissions")
+}
+
+// ── Error Hub ─────────────────────────────────────────────────
+
+model ErrorLog {
+  id          String    @id @default(cuid())
+  level       String
+  message     String
+  path        String?
+  method      String?
+  statusCode  Int?      @map("status_code")
+  userEmail   String?   @map("user_email")
+  referer     String?
+  requestBody String?   @map("request_body")
+  query       String?
+  stack       String?
+  context     String?
+  source      String?
+  resolved    Boolean   @default(false)
+  resolvedBy  String?   @map("resolved_by")
+  resolvedAt  DateTime? @map("resolved_at")
+  resolution  String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([resolved, createdAt])
+  @@index([level])
+  @@map("error_logs")
+}
+
+// ── AreaFit Business Data (historical from CSVs) ──────────────
+
+model Center {
+  id            String         @id @default(cuid())
+  slug          String         @unique
+  name          String
+  isWhatsapp    Boolean        @default(false) @map("is_whatsapp")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  contacts      Contact[]
+  conversations Conversation[]
+
+  @@map("centers")
+}
+
+model Contact {
+  id            String         @id @default(cuid())
+  manychatId    String?        @unique @map("manychat_id")
+  email         String         @unique
+  centerId      String?        @map("center_id")
+  center        Center?        @relation(fields: [centerId], references: [id])
+  createdAt     DateTime       @default(now()) @map("created_at")
+  messages      Message[]
+  conversations Conversation[]
+
+  @@index([email])
+  @@index([centerId])
+  @@map("contacts")
+}
+
+model Rating {
+  id               String   @id @default(cuid())
+  contactEmail     String   @map("contact_email")
+  fitiScore        Int?     @map("fiti_score")
+  resolvedScore    Int?     @map("resolved_score")
+  rawFitiScore     Int?     @map("raw_fiti_score")
+  rawResolvedScore Int?     @map("raw_resolved_score")
+  comment          String?
+  modifiedAt       DateTime @map("modified_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([contactEmail])
+  @@index([modifiedAt])
+  @@index([fitiScore])
+  @@map("ratings")
+}
+
+model Message {
+  id             String        @id @default(cuid())
+  contactEmail   String?       @map("contact_email")
+  contactId      String?       @map("contact_id")
+  contact        Contact?      @relation(fields: [contactId], references: [id])
+  userText       String?       @map("user_text")
+  botReply       String?       @map("bot_reply")
+  category       String?
+  conversationId String?       @map("conversation_id")
+  conversation   Conversation? @relation(fields: [conversationId], references: [id])
+  createdAt      DateTime      @map("created_at")
+  modifiedAt     DateTime?     @map("modified_at")
+
+  @@index([contactEmail])
+  @@index([createdAt])
+  @@index([conversationId])
+  @@index([category])
+  @@index([contactEmail, createdAt])
+  @@map("messages")
+}
+
+model Conversation {
+  id              String    @id @default(cuid())
+  contactEmail    String?   @map("contact_email")
+  contactId       String?   @map("contact_id")
+  contact         Contact?  @relation(fields: [contactId], references: [id])
+  centerId        String?   @map("center_id")
+  center          Center?   @relation(fields: [centerId], references: [id])
+  channel         String
+  messageCount    Int       @default(0) @map("message_count")
+  firstMessageAt  DateTime  @map("first_message_at")
+  lastMessageAt   DateTime  @map("last_message_at")
+  lastUserText    String?   @map("last_user_text")
+  category        String?
+  status          String    @default("closed")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  messages        Message[]
+
+  @@index([centerId])
+  @@index([lastMessageAt])
+  @@index([category])
+  @@index([contactEmail])
+  @@map("conversations")
+}

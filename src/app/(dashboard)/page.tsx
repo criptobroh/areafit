@@ -5,11 +5,13 @@ import { KPICard } from "@/components/dashboard/kpi-card"
 import { ContactsByCenterChart } from "@/components/dashboard/contacts-by-center-chart"
 import { UsageByCategoryChart } from "@/components/dashboard/usage-by-category-chart"
 import { TrendChart } from "@/components/dashboard/trend-chart"
-import { TopicsSummary } from "@/components/dashboard/topics-summary"
-import { mockKPIs } from "@/lib/mock-data"
+import { FitiLiveWidget } from "@/components/dashboard/fiti-live-widget"
+import { useKPIs } from "@/hooks/queries/use-dashboard"
 import { MessageSquareText, Users, Star, TrendingUp } from "lucide-react"
 
 export default function DashboardPage() {
+  const { data, isLoading } = useKPIs()
+
   return (
     <>
       <Topbar title="Dashboard" />
@@ -18,27 +20,28 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
           <KPICard
             title="Conversaciones"
-            value={mockKPIs.totalConversations}
-            trend={mockKPIs.conversationsTrend}
+            value={data?.totalConversations ?? 0}
             icon={MessageSquareText}
+            loading={isLoading}
           />
           <KPICard
             title="Contactos"
-            value={mockKPIs.totalContacts}
-            trend={mockKPIs.contactsTrend}
+            value={data?.totalContacts ?? 0}
             icon={Users}
+            loading={isLoading}
           />
           <KPICard
             title="Valoraciones"
-            value={mockKPIs.totalRatings}
-            trend={mockKPIs.ratingsTrend}
+            value={data?.totalRatings ?? 0}
             icon={Star}
+            loading={isLoading}
           />
           <KPICard
             title="Puntuacion Fiti"
-            value={mockKPIs.avgFitiScore}
+            value={data?.avgFitiScore ?? 0}
             icon={TrendingUp}
             format="decimal"
+            loading={isLoading}
           />
         </div>
 
@@ -57,9 +60,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Topics Summary */}
+        {/* Fiti Live Widget - full width */}
         <div className="animate-fade-in-up" style={{ animationDelay: "550ms" }}>
-          <TopicsSummary />
+          <FitiLiveWidget />
         </div>
       </div>
     </>
