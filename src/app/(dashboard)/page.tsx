@@ -4,7 +4,6 @@ import { Topbar } from "@/components/layout/topbar"
 import { KPICard } from "@/components/dashboard/kpi-card"
 import { ContactsByCenterChart } from "@/components/dashboard/contacts-by-center-chart"
 import { UsageByCategoryChart } from "@/components/dashboard/usage-by-category-chart"
-import { TrendChart } from "@/components/dashboard/trend-chart"
 import { FitiLiveWidget } from "@/components/dashboard/fiti-live-widget"
 import { useKPIs } from "@/hooks/queries/use-dashboard"
 import { MessageSquareText, Users, Star, TrendingUp } from "lucide-react"
@@ -43,11 +42,6 @@ export default function DashboardPage() {
             format="decimal"
             loading={isLoading}
           />
-        </div>
-
-        {/* Trend Chart - full width */}
-        <div className="animate-fade-in-up" style={{ animationDelay: "300ms" }}>
-          <TrendChart />
         </div>
 
         {/* Charts Row */}
