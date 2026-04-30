@@ -127,6 +127,8 @@ export function useRatings(filters: {
 
 export type RatingStats = {
   total: number
+  historicalTotal: number
+  liveTotal: number
   avgFitiScore: number
   avgResolvedScore: number
   distribution: Array<{ score: number | null; count: number }>
@@ -136,5 +138,32 @@ export function useRatingStats() {
   return useQuery({
     queryKey: ["ratings-stats"],
     queryFn: () => fetchJSON<RatingStats>("/api/ratings/stats"),
+  })
+}
+
+// ── Live Reviews (Supabase via n8n) ──────────────────────
+
+export type LiveReviewRow = {
+  id: string
+  contactUser: string | null
+  fitiScore: number | null
+  resolvedScore: number | null
+  comment: string | null
+  createdAt: string
+}
+
+export type LiveReviewsResponse = {
+  total: number
+  avgFitiScore: number
+  avgResolvedScore: number
+  withComment: number
+  data: LiveReviewRow[]
+}
+
+export function useFitiReviews() {
+  return useQuery({
+    queryKey: ["fiti-reviews"],
+    queryFn: () => fetchJSON<LiveReviewsResponse>("/api/fiti-reviews"),
+    refetchInterval: 30_000, // poll cada 30s
   })
 }

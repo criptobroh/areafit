@@ -88,3 +88,64 @@ export async function getFitiChatsByContact(contactId: string, limit = 100): Pro
   )
   return rows
 }
+
+// ── public.calificaciones (reviews live de Fiti via n8n) ──────────────
+
+export type FitiRatingRow = {
+  id: number
+  created_at: Date
+  user: string | null
+  pregunta1: number | null   // estrellas - "Como calificarias a Fiti"
+  pregunta2: number | null   // estrellas - "Resolvimos tus consultas"
+  pregunta3: string | null   // texto libre
+}
+
+export async function getFitiRatings(limit = 100): Promise<FitiRatingRow[]> {
+  if (!fitiPool) return []
+  const { rows } = await fitiPool.query<FitiRatingRow>(
+    `SELECT id, created_at, "user", pregunta1, pregunta2, pregunta3
+     FROM public.calificaciones
+     ORDER BY created_at DESC
+     LIMIT $1`,
+    [limit]
+  )
+  return rows
+}
+
+export async function getFitiRatingsCount(): Promise<number> {
+  if (!fitiPool) return 0
+  const { rows } = await fitiPool.query<{ count: string }>(
+    `SELECT COUNT(*)::text AS count FROM public.calificaciones`
+  )
+  return parseInt(rows[0].count, 10)
+}
+
+export async function getFitiRatingsStats(): Promise<{
+  total: number
+  avgPregunta1: number
+  avgPregunta2: number
+  withComment: number
+}> {
+  if (!fitiPool)
+    return { total: 0, avgPregunta1: 0, avgPregunta2: 0, withComment: 0 }
+  const { rows } = await fitiPool.query<{
+    total: string
+    avg_p1: string | null
+    avg_p2: string | null
+    with_comment: string
+  }>(
+    `SELECT
+       COUNT(*)::text AS total,
+       AVG(pregunta1)::text AS avg_p1,
+       AVG(pregunta2)::text AS avg_p2,
+       COUNT(*) FILTER (WHERE pregunta3 IS NOT NULL AND length(trim(pregunta3)) > 0)::text AS with_comment
+     FROM public.calificaciones`
+  )
+  const r = rows[0]
+  return {
+    total: parseInt(r.total, 10),
+    avgPregunta1: parseFloat(r.avg_p1 || "0"),
+    avgPregunta2: parseFloat(r.avg_p2 || "0"),
+    withComment: parseInt(r.with_comment, 10),
+  }
+}

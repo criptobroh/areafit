@@ -52,18 +52,24 @@ export async function GET(req: NextRequest) {
       });
       return response;
     }
-  } catch {
-    // DB not available — fall through to hardcoded JWT
+  } catch (err) {
+    console.error("[dev-login] DB lookup failed, using fallback:", err)
   }
 
-  // Fallback: generate JWT without DB
+  // Fallback: generate JWT without DB (admin con permisos full a screens AreaFit)
   const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "dev-secret-32-chars-minimum-here!";
   const key = new TextEncoder().encode(secret);
 
   const screens = [
-    "inicio", "pacientes", "psicologas", "pagos", "conciliaciones",
-    "reembolsos", "derivaciones", "preseleccion", "supervisiones",
-    "faltas", "bloqueos", "vacaciones", "admin.usuarios", "admin.roles", "admin.logs",
+    "dashboard",
+    "conversaciones",
+    "contactos",
+    "valoraciones",
+    "social",
+    "perfil",
+    "admin.usuarios",
+    "admin.roles",
+    "admin.logs",
   ];
   const permissions: PermissionsMap = {};
   for (const s of screens) {
@@ -72,13 +78,13 @@ export async function GET(req: NextRequest) {
 
   const token = await new SignJWT({
     userId: "dev-user",
-    email: "dev@psimammoliti.com",
+    email: "dev@areafit.es",
     firstName: "Dev",
     lastName: "User",
     nickname: null,
     roleId: "dev",
     roleName: "Administrador",
-    homeScreen: "metrics",
+    homeScreen: "dashboard",
     permissions,
   })
     .setProtectedHeader({ alg: "HS256" })
